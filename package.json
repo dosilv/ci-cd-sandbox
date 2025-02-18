@@ -6,7 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:chapter1-3": "pnpm --filter front_4th_chapter1-3 dev",
+    "build:chapter1-3": "pnpm --filter front_4th_chapter1-3 build",
+    "start:chapter1-3": "pnpm --filter front_4th_chapter1-3 start",
+    "dev:chapter2-2": "pnpm --filter front_4th_chapter2-2 dev",
+    "build:chapter2-2": "pnpm --filter front_4th_chapter2-2 build",
+    "start:chapter2-2": "pnpm --filter front_4th_chapter2-2 start",
+    "dev:chapter3-2": "pnpm --filter front_4th_chapter3-2 dev",
+    "build:chapter3-2": "pnpm --filter front_4th_chapter3-2 build",
+    "start:chapter3-2": "pnpm --filter front_4th_chapter3-2 start"
   },
   "dependencies": {
     "next": "15.1.7",
