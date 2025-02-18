@@ -1,0 +1,24 @@
+{
+  "name": "front_4th_chapter2-2",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "REACT_APP_MODE=API_MOCK vite",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:basic": "vitest src/basic",
+    "test:advanced": "vitest src/advanced",
+    "test:ui": "vitest --ui",
+    "build": "tsc -b && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}
