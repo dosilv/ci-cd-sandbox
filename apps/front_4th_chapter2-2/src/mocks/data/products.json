@@ -1,0 +1,26 @@
+[
+  {
+    "id": "p1",
+    "name": "Product 1 📦 (Mock)",
+    "price": 10000,
+    "stock": 20,
+    "discounts": [
+      { "quantity": 10, "rate": 0.1 },
+      { "quantity": 20, "rate": 0.2 }
+    ]
+  },
+  {
+    "id": "p2",
+    "name": "Product 2 📦 (Mock)",
+    "price": 20000,
+    "stock": 20,
+    "discounts": [{ "quantity": 10, "rate": 0.15 }]
+  },
+  {
+    "id": "p3",
+    "name": "Product 3 📦 (Mock)",
+    "price": 30000,
+    "stock": 20,
+    "discounts": [{ "quantity": 10, "rate": 0.2 }]
+  }
+]
