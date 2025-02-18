@@ -45,7 +45,7 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
-import { useRef, useState } from 'react';
+import { RefObject, useRef, useState } from 'react';
 
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
@@ -672,7 +672,7 @@ function App() {
 
       <AlertDialog
         isOpen={isOverlapDialogOpen}
-        leastDestructiveRef={cancelRef}
+        leastDestructiveRef={cancelRef as RefObject<HTMLButtonElement>}
         onClose={() => setIsOverlapDialogOpen(false)}
       >
         <AlertDialogOverlay>
