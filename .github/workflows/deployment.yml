@@ -50,8 +50,11 @@ jobs:
     # ⚠️ secrets는 보안상의 이유로 matrix.include에서 사용할 수 없음!
     strategy:
       matrix:
-        package: [ci-cd-sandbox, front_4th_chapter1-3]
-        path: [out, dist]
+        include:
+          - package: ci-cd-sandbox
+            path: out
+          - package: front_4th_chapter1-3
+            path: dist
 
     steps:
       - name: Checkout repository
@@ -60,8 +63,8 @@ jobs:
       - name: Download build artifacts for ${{ matrix.package }}
         uses: actions/download-artifact@v4
         with:
-          name: build
-          path: out
+          name: build-${{ matrix.package }}
+          path: ${{ matrix.path }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
