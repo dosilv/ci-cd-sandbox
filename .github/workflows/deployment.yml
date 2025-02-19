@@ -39,19 +39,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    # 각 프로젝트 병렬 배포를 위한 matrix 및 secrets 설정 🪄
+
+    # 각 프로젝트 병렬 배포를 위한 matrix 및 path 설정 🪄
+    # ⚠️ secrets는 보안상의 이유로 matrix.include에서 사용할 수 없음!
     strategy:
       matrix:
-        include:
-          - package: nextApp
-            bucket: ${{ secrets.S3_BUCKET_NAME }}
-            distribution: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
-            path: out
-
-          - package: chapter1-3
-            bucket: ${{ secrets.CHAPTER_1_3_BUCKET_NAME }}
-            distribution: ${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}
-            path: dist
+        package: [nextApp, chapter1-3]
+        path: [out, dist]
 
     steps:
       - name: Checkout repository
@@ -70,10 +64,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # ✅ 여기에서 secrets를 직접 참조
       - name: Deploy to S3
         run: |
-          aws s3 sync out/ s3://${{ matrix.bucket }} --delete
+          if [[ "${{ matrix.package }}" == "nextApp" ]]; then
+            BUCKET="${{ secrets.S3_BUCKET_NAME }}"
+            DISTRIBUTION="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+          elif [[ "${{ matrix.package }}" == "chapter1-3" ]]; then
+            BUCKET="${{ secrets.CHAPTER_1_3_BUCKET_NAME }}"
+            DISTRIBUTION="${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}"
+          fi
+
+          aws s3 sync out/ s3://$BUCKET --delete
 
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ matrix.distribution }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/*"
