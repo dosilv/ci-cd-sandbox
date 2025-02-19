@@ -3,12 +3,19 @@ name: Deploy Next.js to S3 and invalidate CloudFront
 on:
   push:
     branches:
-      - main # 또는 master, 프로젝트의 기본 브랜치 이름에 맞게 조정
+      - main
+      - monorepo-ci-setting
   workflow_dispatch:
 
 jobs:
-  deploy:
+  # 빌드 📦
+  build:
     runs-on: ubuntu-latest
+
+    # 각 프로젝트 병렬 빌드를 위한 matrix 설정 🗑️
+    strategy:
+      matrix:
+        package: [nextApp, chapter1-3, chapter2-2, chapter3-2]
 
     steps:
       - name: Checkout repository
@@ -26,7 +33,35 @@ jobs:
         run: pnpm install
 
       - name: Build
-        run: pnpm run build
+        run: pnpm run build --filter=${{ matrix.package }}
+
+  # 배포 🚀
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # 각 프로젝트 병렬 배포를 위한 matrix 및 secrets 설정 🪄
+    strategy:
+      matrix:
+        include:
+          - package: nextApp
+            bucket: ${{ secrets.S3_BUCKET_NAME }}
+            distribution: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+            path: out
+
+          - package: chapter1-3
+            bucket: ${{ secrets.CHAPTER_1_3_BUCKET_NAME }}
+            distribution: ${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}
+            path: dist
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts for ${{ matrix.package }}
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: out
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -37,8 +72,8 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync out/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
+          aws s3 sync out/ s3://${{ matrix.bucket }} --delete
 
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ matrix.distribution }} --paths "/*"
