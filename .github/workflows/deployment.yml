@@ -15,7 +15,13 @@ jobs:
     # 각 프로젝트 병렬 빌드를 위한 matrix 설정 🗑️
     strategy:
       matrix:
-        package: [nextApp, chapter1-3, chapter2-2, chapter3-2]
+        package:
+          [
+            ci-cd-sandbox,
+            front_4th_chapter1-3,
+            front_4th_chapter2-2,
+            front_4th_chapter3-2,
+          ]
 
     steps:
       - name: Checkout repository
@@ -33,7 +39,7 @@ jobs:
         run: pnpm install
 
       - name: Build
-        run: pnpm run build --filter=${{ matrix.package }}
+        run: pnpm --filter=${{ matrix.package }} run build
 
   # 배포 🚀
   deploy:
@@ -44,7 +50,7 @@ jobs:
     # ⚠️ secrets는 보안상의 이유로 matrix.include에서 사용할 수 없음!
     strategy:
       matrix:
-        package: [nextApp, chapter1-3]
+        package: [ci-cd-sandbox, front_4th_chapter1-3]
         path: [out, dist]
 
     steps:
@@ -67,10 +73,10 @@ jobs:
       # ✅ 여기에서 secrets를 직접 참조
       - name: Deploy to S3
         run: |
-          if [[ "${{ matrix.package }}" == "nextApp" ]]; then
+          if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
             BUCKET="${{ secrets.S3_BUCKET_NAME }}"
             DISTRIBUTION="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
-          elif [[ "${{ matrix.package }}" == "chapter1-3" ]]; then
+          elif [[ "${{ matrix.package }}" == "front_4th_chapter1-3" ]]; then
             BUCKET="${{ secrets.CHAPTER_1_3_BUCKET_NAME }}"
             DISTRIBUTION="${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}"
           fi
