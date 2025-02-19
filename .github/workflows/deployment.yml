@@ -15,13 +15,15 @@ jobs:
     # 각 프로젝트 병렬 빌드를 위한 matrix 설정 🗑️
     strategy:
       matrix:
-        package:
-          [
-            ci-cd-sandbox,
-            front_4th_chapter1-3,
-            front_4th_chapter2-2,
-            front_4th_chapter3-2,
-          ]
+        include:
+          - package: ci-cd-sandbox
+            path: out
+          - package: front_4th_chapter1-3
+            path: dist
+          - package: front_4th_chapter2-2
+            path: dist
+          - package: front_4th_chapter3-2
+            path: dist
 
     steps:
       - name: Checkout repository
@@ -40,6 +42,13 @@ jobs:
 
       - name: Build
         run: pnpm --filter=${{ matrix.package }} run build
+
+      # 빌드 결과물 업로드 📁
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.package }}
+          path: ${{ matrix.path }}
 
   # 배포 🚀
   deploy:
