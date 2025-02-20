@@ -76,13 +76,20 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - name: Build
+      # 캐시된 의존성으로 빌드 시도, 실패 시 의존성 설치 후 재시도 🩹
+      - name: Build with retry
         run: |
+          build_command=""
           if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
-            pnpm run build
+            build_command="pnpm run build"
           else
-            pnpm --filter=${{ matrix.package }} run build
+            build_command="pnpm --filter=${{ matrix.package }} run build"
           fi
+
+          $build_command || {
+            echo "Build failed, installing dependencies and retrying..."
+            pnpm install && $build_command
+          }
 
       # 빌드 결과물 업로드 📁
       - name: Upload build artifacts
