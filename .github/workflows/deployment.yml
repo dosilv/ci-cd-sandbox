@@ -19,11 +19,11 @@ jobs:
           - package: ci-cd-sandbox
             path: out
           - package: front_4th_chapter1-3
-            path: dist
+            path: apps/front_4th_chapter1-3/dist
           - package: front_4th_chapter2-2
-            path: dist
+            path: apps/front_4th_chapter2-2/dist
           - package: front_4th_chapter3-2
-            path: dist
+            path: apps/front_4th_chapter3-2/dist
 
     steps:
       - name: Checkout repository
@@ -41,7 +41,12 @@ jobs:
         run: pnpm install
 
       - name: Build
-        run: pnpm --filter=${{ matrix.package }} run build
+        run: |
+          if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
+            pnpm run build
+          else
+            pnpm --filter=${{ matrix.package }} run build
+          fi
 
       # 빌드 결과물 업로드 📁
       - name: Upload build artifacts
@@ -63,7 +68,7 @@ jobs:
           - package: ci-cd-sandbox
             path: out
           - package: front_4th_chapter1-3
-            path: dist
+            path: apps/front_4th_chapter1-3/dist
 
     steps:
       - name: Checkout repository
