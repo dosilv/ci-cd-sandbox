@@ -69,6 +69,10 @@ jobs:
             path: out
           - package: front_4th_chapter1-3
             path: apps/front_4th_chapter1-3/dist
+          - package: front_4th_chapter2-2
+            path: apps/front_4th_chapter2-2/dist
+          - package: front_4th_chapter3-2
+            path: apps/front_4th_chapter3-2/dist
 
     steps:
       - name: Checkout repository
@@ -97,6 +101,12 @@ jobs:
           elif [[ "${{ matrix.package }}" == "front_4th_chapter1-3" ]]; then
             echo "BUCKET=${{ secrets.CHAPTER_1_3_BUCKET_NAME }}" >> $GITHUB_ENV
             echo "DISTRIBUTION_ID=${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          elif [[ "${{ matrix.package }}" == "front_4th_chapter2-2" ]]; then
+            echo "BUCKET=${{ secrets.CHAPTER_2_2_BUCKET_NAME }}" >> $GITHUB_ENV
+            echo "DISTRIBUTION_ID=${{ secrets.CHAPTER_2_2_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          elif [[ "${{ matrix.package }}" == "front_4th_chapter3-2" ]]; then
+            echo "BUCKET=${{ secrets.CHAPTER_3_2_BUCKET_NAME }}" >> $GITHUB_ENV
+            echo "DISTRIBUTION_ID=${{ secrets.CHAPTER_3_2_DISTRIBUTION_ID }}" >> $GITHUB_ENV
           fi
 
       - name: Deploy to S3
