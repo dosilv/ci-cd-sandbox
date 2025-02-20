@@ -74,13 +74,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug build output
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Files in current directory:"
-          ls -la
-
       - name: Download build artifacts for ${{ matrix.package }}
         uses: actions/download-artifact@v4
         with:
@@ -104,6 +97,8 @@ jobs:
             BUCKET="${{ secrets.CHAPTER_1_3_BUCKET_NAME }}"
             DISTRIBUTION="${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}"
           fi
+
+          echo "Using CloudFront Distribution ID: $DISTRIBUTION"
 
           aws s3 sync ${{ matrix.path }} s3://$BUCKET --delete
 
