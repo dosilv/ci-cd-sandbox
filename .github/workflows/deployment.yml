@@ -3,13 +3,14 @@ name: Deploy Next.js to S3 and invalidate CloudFront
 on:
   push:
     branches:
-      - main # 또는 master, 프로젝트의 기본 브랜치 이름에 맞게 조정
+      - main
+      - monorepo-ci-setting
   workflow_dispatch:
 
 jobs:
-  deploy:
+  # 공통 의존성 설치 및 캐싱 🌱
+  install-dependencies:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,8 +26,107 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build
-        run: pnpm run build
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          # 캐시 식별 키 🔑
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          # 일치하는 키가 없는 경우 우선 복원할 키
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+  # 빌드 📦
+  build:
+    needs: install-dependencies
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    # 각 프로젝트 병렬 빌드를 위한 matrix 설정 🗑️
+    strategy:
+      matrix:
+        include:
+          - package: ci-cd-sandbox
+            path: out
+          - package: front_4th_chapter1-3
+            path: apps/front_4th_chapter1-3/dist
+          - package: front_4th_chapter2-2
+            path: apps/front_4th_chapter2-2/dist
+          - package: front_4th_chapter3-2
+            path: apps/front_4th_chapter3-2/dist
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.9.0"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # 의존성 캐시 복원 🔄
+      - name: Restore dependencies from cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      # 캐시된 의존성으로 빌드 시도, 실패 시 의존성 설치 후 재시도 🩹
+      - name: Build with retry
+        run: |
+          build_command=""
+          if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
+            build_command="pnpm run build"
+          else
+            build_command="pnpm --filter=${{ matrix.package }} run build"
+          fi
+
+          $build_command || {
+            echo "Build failed, installing dependencies and retrying..."
+            pnpm install && $build_command
+          }
+
+      # 빌드 결과물 업로드 📁
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.package }}
+          path: ${{ matrix.path }}
+
+  # 배포 🚀
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    # 각 프로젝트 병렬 배포를 위한 matrix 및 path 설정 🪄
+    # ⚠️ secrets는 보안상의 이유로 matrix.include에서 사용할 수 없음!
+    strategy:
+      matrix:
+        include:
+          - package: ci-cd-sandbox
+            path: out
+          - package: front_4th_chapter1-3
+            path: apps/front_4th_chapter1-3/dist
+          - package: front_4th_chapter2-2
+            path: apps/front_4th_chapter2-2/dist
+          - package: front_4th_chapter3-2
+            path: apps/front_4th_chapter3-2/dist
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts for ${{ matrix.package }}
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.package }}
+          path: ${{ matrix.path }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -35,10 +135,29 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # ✅ 여기에서 secrets를 직접 참조
+      # ⚠️ $GITHUB_ENV로 설정한 변수는 설정 이후 단계에서부터 인식되므로 별도 run으로 분리
+      - name: Set environment variables
+        run: |
+          if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
+            echo "BUCKET=${{ secrets.S3_BUCKET_NAME }}" >> $GITHUB_ENV
+            echo "DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          elif [[ "${{ matrix.package }}" == "front_4th_chapter1-3" ]]; then
+            echo "BUCKET=${{ secrets.CHAPTER_1_3_BUCKET_NAME }}" >> $GITHUB_ENV
+            echo "DISTRIBUTION_ID=${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          elif [[ "${{ matrix.package }}" == "front_4th_chapter2-2" ]]; then
+            echo "BUCKET=${{ secrets.CHAPTER_2_2_BUCKET_NAME }}" >> $GITHUB_ENV
+            echo "DISTRIBUTION_ID=${{ secrets.CHAPTER_2_2_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          elif [[ "${{ matrix.package }}" == "front_4th_chapter3-2" ]]; then
+            echo "BUCKET=${{ secrets.CHAPTER_3_2_BUCKET_NAME }}" >> $GITHUB_ENV
+            echo "DISTRIBUTION_ID=${{ secrets.CHAPTER_3_2_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          fi
+
       - name: Deploy to S3
         run: |
-          aws s3 sync out/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
+          echo "Using CloudFront Distribution ID: $DISTRIBUTION_ID"
+          aws s3 sync ${{ matrix.path }} s3://$BUCKET --delete
 
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
