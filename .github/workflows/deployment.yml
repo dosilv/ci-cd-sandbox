@@ -88,21 +88,22 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       # ✅ 여기에서 secrets를 직접 참조
-      - name: Deploy to S3
+      # ⚠️ $GITHUB_ENV로 설정한 변수는 새로운 run 단계에서만 인식되므로 환경 변수 설정 단계 별도로 분리
+      - name: Set environment variables
         run: |
           if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
             echo "BUCKET=${{ secrets.S3_BUCKET_NAME }}" >> $GITHUB_ENV
-            echo "DISTRIBUTION=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
-            
+            echo "DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
           elif [[ "${{ matrix.package }}" == "front_4th_chapter1-3" ]]; then
             echo "BUCKET=${{ secrets.CHAPTER_1_3_BUCKET_NAME }}" >> $GITHUB_ENV
-            echo "DISTRIBUTION=${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+            echo "DISTRIBUTION_ID=${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}" >> $GITHUB_ENV
           fi
 
-          echo "Using CloudFront Distribution ID: $DISTRIBUTION"
-
+      - name: Deploy to S3
+        run: |
+          echo "Using CloudFront Distribution ID: $DISTRIBUTION_ID"
           aws s3 sync ${{ matrix.path }} s3://$BUCKET --delete
 
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/*"
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
