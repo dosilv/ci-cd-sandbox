@@ -71,8 +71,10 @@ jobs:
 
       - name: Debug build output
         run: |
-          echo "Debugging build output for ${{ matrix.package }}"
-          ls -la ${{ matrix.path }}
+          echo "Current directory:"
+          pwd
+          echo "Files in current directory:"
+          ls -la
 
       - name: Download build artifacts for ${{ matrix.package }}
         uses: actions/download-artifact@v4
