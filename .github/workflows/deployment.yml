@@ -1,10 +1,9 @@
-name: Deploy Next.js to S3 and invalidate CloudFront
+name: Deploy Monorepo to S3 and invalidate CloudFront
 
 on:
   push:
     branches:
       - main
-      - monorepo-ci-setting
   workflow_dispatch:
 
 jobs:
