@@ -69,6 +69,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Debug build output
+        run: |
+          echo "Debugging build output for ${{ matrix.package }}"
+          ls -la ${{ matrix.path }}
+
       - name: Download build artifacts for ${{ matrix.package }}
         uses: actions/download-artifact@v4
         with:
@@ -93,7 +98,7 @@ jobs:
             DISTRIBUTION="${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}"
           fi
 
-          aws s3 sync out/ s3://$BUCKET --delete
+          aws s3 sync ${{ matrix.path }} s3://$BUCKET --delete
 
       - name: Invalidate CloudFront cache
         run: |
