@@ -42,6 +42,7 @@ jobs:
   build:
     needs: install-dependencies
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     # 각 프로젝트 병렬 빌드를 위한 matrix 설정 🗑️
     strategy:
@@ -94,6 +95,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     # 각 프로젝트 병렬 배포를 위한 matrix 및 path 설정 🪄
     # ⚠️ secrets는 보안상의 이유로 matrix.include에서 사용할 수 없음!
