@@ -91,11 +91,11 @@ jobs:
       - name: Deploy to S3
         run: |
           if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
-            BUCKET="${{ secrets.S3_BUCKET_NAME }}"
-            DISTRIBUTION="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+            export BUCKET="${{ secrets.S3_BUCKET_NAME }}"
+            export DISTRIBUTION="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
           elif [[ "${{ matrix.package }}" == "front_4th_chapter1-3" ]]; then
-            BUCKET="${{ secrets.CHAPTER_1_3_BUCKET_NAME }}"
-            DISTRIBUTION="${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}"
+            export BUCKET="${{ secrets.CHAPTER_1_3_BUCKET_NAME }}"
+            export DISTRIBUTION="${{ secrets.CHAPTER_1_3_DISTRIBUTION_ID }}"
           fi
 
           echo "Using CloudFront Distribution ID: $DISTRIBUTION"
