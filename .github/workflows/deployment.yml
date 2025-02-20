@@ -8,6 +8,34 @@ on:
   workflow_dispatch:
 
 jobs:
+  # 공통 의존성 설치 및 캐싱 🌱
+  install-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.9.0"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          # 캐시 식별 키 🔑
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          # 일치하는 키가 없는 경우 우선 복원할 키
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
   # 빌드 📦
   build:
     runs-on: ubuntu-latest
@@ -34,11 +62,12 @@ jobs:
         with:
           node-version: "20.9.0"
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install dependencies
-        run: pnpm install
+      # 의존성 캐시 복원 🔄
+      - name: Restore dependencies from cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Build
         run: |
@@ -92,7 +121,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       # ✅ 여기에서 secrets를 직접 참조
-      # ⚠️ $GITHUB_ENV로 설정한 변수는 새로운 run 단계에서만 인식되므로 환경 변수 설정 단계 별도로 분리
+      # ⚠️ $GITHUB_ENV로 설정한 변수는 설정 이후 단계에서부터 인식되므로 별도 run으로 분리
       - name: Set environment variables
         run: |
           if [[ "${{ matrix.package }}" == "ci-cd-sandbox" ]]; then
