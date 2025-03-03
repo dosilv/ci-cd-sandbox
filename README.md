@@ -18,22 +18,6 @@ matrix를 사용하여 개별 프로젝트를 병렬로 빌드합니다. 실패 
 
 <img width="1068" alt="image" src="https://github.com/user-attachments/assets/097cf469-d1b9-49f0-bcee-35e0f03e00a7" />
 
-## 주요 링크 🔗
-
-S3 버킷 웹사이트 엔드포인트
-
-- next app: http://dosilv-ci-cd-sandbox.s3-website.ap-northeast-2.amazonaws.com
-- chapter1-3: http://front-4th-chapter1-3.s3-website.ap-northeast-2.amazonaws.com
-- chapter2-2: http://front-4th-chapter2-2.s3-website.ap-northeast-2.amazonaws.com
-- chapter3-2: http://front-4th-chapter3-2.s3-website.ap-northeast-2.amazonaws.com
-
-CloudFront 배포 도메인
-
-- next app: https://d2tu72bsyzf5r5.cloudfront.net
-- chapter1-3: https://d1w6mx1810khk7.cloudfront.net
-- chapter2-2: https://dx4iuban5rigb.cloudfront.net
-- chapter3-2: https://de9dy3cer8c9.cloudfront.net
-
 ## 주요 개념
 
 ### 🐱 Github Actions
